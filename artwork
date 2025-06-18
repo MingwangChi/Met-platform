@@ -1,0 +1,25 @@
+# 작품 데이터 수집 예시
+import requests
+import pandas as pd
+
+# 1. 키워드 검색
+params = {"q": "landscape", "artistOrCulture": True}
+search_url = "https://collectionapi.metmuseum.org/public/collection/v1/search"
+response = requests.get(search_url, params=params).json()
+object_ids = response.get("objectIDs", [])[:20]
+
+# 2. 작품 상세정보 가져오기
+artworks = []
+for oid in object_ids:
+    obj = requests.get(f"https://collectionapi.metmuseum.org/public/collection/v1/objects/{oid}").json()
+    if obj.get("primaryImageSmall"):
+        artworks.append({
+            "title": obj["title"],
+            "artist": obj["artistDisplayName"],
+            "year": obj["objectDate"],
+            "medium": obj["medium"],
+            "image": obj["primaryImageSmall"]
+        })
+
+df = pd.DataFrame(artworks)
+df.head()
